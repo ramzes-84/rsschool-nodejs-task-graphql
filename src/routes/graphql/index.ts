@@ -3,12 +3,6 @@ import { createGqlResponseSchema, gqlResponseSchema } from './schemas.js';
 import { validate, parse, graphql } from 'graphql';
 import { schema } from './types/schema.js';
 
-// const schema = buildSchema(`
-//   type Query {
-//     hello: String
-//   }
-// `);
-
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.route({
     url: '/',

@@ -1,6 +1,6 @@
 import { GraphQLSchema } from 'graphql';
-import { userObj } from './user-obj.js';
+import { QueryType } from './user-fields.js';
 
 export const schema = new GraphQLSchema({
-  query: userObj,
+  query: QueryType,
 });
