@@ -11,16 +11,17 @@ import { UUIDType } from './uuid.js';
 import { IdArg, PrismaContext } from '../types.js';
 import { Profile } from '@prisma/client';
 import { Member, MemberEnum } from './member.js';
+import { PostT } from './post.js';
 
 export const QueryType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
     users: {
-      type: new GraphQLList(UserType),
+      type: new GraphQLList(UserT),
       resolve: (_, __, { prisma }: PrismaContext) => prisma.user.findMany(),
     },
     user: {
-      type: UserType,
+      type: UserT,
       args: { id: { type: new GraphQLNonNull(UUIDType) } },
       resolve: (_, { id }: IdArg, { prisma }) =>
         prisma.user.findUnique({ where: { id } }),
@@ -28,18 +29,24 @@ export const QueryType = new GraphQLObjectType({
   }),
 });
 
-const UserType = new GraphQLObjectType({
+export const UserT = new GraphQLObjectType({
   name: 'User',
   fields: () => ({
-    name: { type: GraphQLString },
-    balance: { type: GraphQLFloat },
-    id: {
-      type: new GraphQLNonNull(UUIDType),
-    },
     profile: {
       type: ProfileT,
       resolve: async ({ id }: IdArg, _, { prisma }: PrismaContext) =>
         await prisma.profile.findUnique({ where: { id } }),
+    },
+    name: { type: GraphQLString },
+    balance: { type: GraphQLFloat },
+    posts: {
+      type: new GraphQLList(PostT),
+      resolve: async ({ id }, _, { prisma }: PrismaContext) =>
+        await prisma.post.findUnique({ where: { id } }),
+    },
+
+    id: {
+      type: new GraphQLNonNull(UUIDType),
     },
   }),
 });
@@ -52,8 +59,8 @@ export const ProfileT: GraphQLObjectType<Profile, PrismaContext> = new GraphQLOb
     yearOfBirth: { type: GraphQLInt },
     userId: { type: UUIDType },
     user: {
-      type: UserType,
-      resolve: async ({ id }: IdArg, _, { prisma }: PrismaContext) =>
+      type: UserT,
+      resolve: async ({ id }, _, { prisma }: PrismaContext) =>
         await prisma.user.findUnique({ where: { id } }),
     },
     memberTypeId: { type: MemberEnum },
