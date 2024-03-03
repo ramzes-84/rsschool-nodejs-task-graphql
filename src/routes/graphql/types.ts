@@ -7,3 +7,8 @@ export type IdArg = {
 export type PrismaContext = {
   prisma: PrismaClient;
 };
+
+export type UserInit = {
+  name: string;
+  balance: number;
+};
