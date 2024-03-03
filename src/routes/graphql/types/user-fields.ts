@@ -35,7 +35,7 @@ export const QueryType = new GraphQLObjectType({
     user: {
       type: UserT,
       args: { id: { type: UUIDType } },
-      resolve: (_, { id }: IdArg, { prisma }) =>
+      resolve: (_, { id }: IdArg, { prisma }: PrismaContext) =>
         prisma.user.findUnique({ where: { id } }),
     },
     post: {
@@ -77,6 +77,32 @@ export const UserT = new GraphQLObjectType({
     id: {
       type: new GraphQLNonNull(UUIDType),
     },
+    userSubscribedTo: {
+      type: new GraphQLList(UserT),
+      resolve: ({ id }: IdArg, _, { prisma }) =>
+        prisma.user.findMany({
+          where: {
+            subscribedToUser: {
+              some: {
+                subscriberId: id,
+              },
+            },
+          },
+        }),
+    },
+    subscribedToUser: {
+      type: new GraphQLList(UserT),
+      resolve: ({ id }: IdArg, _, { prisma }) =>
+        prisma.user.findMany({
+          where: {
+            userSubscribedTo: {
+              some: {
+                authorId: id,
+              },
+            },
+          },
+        }),
+    },
   }),
 });
 
@@ -87,11 +113,6 @@ export const ProfileT: GraphQLObjectType<Profile, PrismaContext> = new GraphQLOb
     isMale: { type: GraphQLBoolean },
     yearOfBirth: { type: GraphQLInt },
     userId: { type: UUIDType },
-    user: {
-      type: UserT,
-      resolve: ({ userId }, _, { prisma }: PrismaContext) =>
-        prisma.user.findUnique({ where: { id: userId } }),
-    },
     memberTypeId: { type: MemberEnum },
     memberType: {
       type: Member,
