@@ -33,7 +33,7 @@ export const QueryType = new GraphQLObjectType({
       resolve: (_, __, { prisma }) => prisma.memberType.findMany(),
     },
     user: {
-      type: UserT,
+      type: UserT as GraphQLObjectType,
       args: { id: { type: UUIDType } },
       resolve: (_, { id }: IdArg, { prisma }: PrismaContext) =>
         prisma.user.findUnique({ where: { id } }),
