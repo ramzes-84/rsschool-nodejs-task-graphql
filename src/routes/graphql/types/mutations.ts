@@ -5,7 +5,7 @@ import { UUIDType } from './uuid.js';
 import {
   IdArg,
   PostInit,
-  PrismaContext,
+  GQLContext,
   ProfileInit,
   SubscriptionInit,
   UserInit,
@@ -26,7 +26,7 @@ export const Mutation = new GraphQLObjectType({
     createUser: {
       type: UserT as GraphQLObjectType,
       args: { dto: { type: InputCreateUser } },
-      resolve: (_, { dto }: { dto: UserInit }, { prisma }: PrismaContext) =>
+      resolve: (_, { dto }: { dto: UserInit }, { prisma }: GQLContext) =>
         prisma.user.create({
           data: dto,
         }),

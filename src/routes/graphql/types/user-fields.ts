@@ -8,7 +8,7 @@ import {
   GraphQLString,
 } from 'graphql';
 import { UUIDType } from './uuid.js';
-import { IdArg, PrismaContext } from '../types.js';
+import { IdArg, GQLContext } from '../types.js';
 import { Profile } from '@prisma/client';
 import { Member, MemberEnum } from './member.js';
 import { PostT } from './post.js';
@@ -18,7 +18,7 @@ export const QueryType = new GraphQLObjectType({
   fields: () => ({
     users: {
       type: new GraphQLList(UserT),
-      resolve: (_, __, { prisma }: PrismaContext) => prisma.user.findMany(),
+      resolve: (_, __, { prisma }: GQLContext) => prisma.user.findMany(),
     },
     profiles: {
       type: new GraphQLList(ProfileT),
@@ -35,25 +35,25 @@ export const QueryType = new GraphQLObjectType({
     user: {
       type: UserT as GraphQLObjectType,
       args: { id: { type: UUIDType } },
-      resolve: (_, { id }: IdArg, { prisma }: PrismaContext) =>
+      resolve: (_, { id }: IdArg, { prisma }: GQLContext) =>
         prisma.user.findUnique({ where: { id } }),
     },
     post: {
       type: PostT,
       args: { id: { type: UUIDType } },
-      resolve: (_, { id }: IdArg, { prisma }: PrismaContext) =>
+      resolve: (_, { id }: IdArg, { prisma }: GQLContext) =>
         prisma.post.findUnique({ where: { id } }),
     },
     profile: {
       type: ProfileT,
       args: { id: { type: UUIDType } },
-      resolve: (_, { id }: IdArg, { prisma }: PrismaContext) =>
+      resolve: (_, { id }: IdArg, { prisma }: GQLContext) =>
         prisma.profile.findUnique({ where: { id } }),
     },
     memberType: {
       type: Member,
       args: { id: { type: MemberEnum } },
-      resolve: (_, { id }: IdArg, { prisma }: PrismaContext) =>
+      resolve: (_, { id }: IdArg, { prisma }: GQLContext) =>
         prisma.memberType.findUnique({ where: { id } }),
     },
   }),
@@ -64,14 +64,17 @@ export const UserT = new GraphQLObjectType({
   fields: () => ({
     profile: {
       type: ProfileT,
-      resolve: ({ id }: IdArg, _, { prisma }: PrismaContext) =>
-        prisma.profile.findUnique({ where: { userId: id } }),
+      resolve: async (
+        { id }: IdArg,
+        _,
+        { loaders: { profilesDataLoader } }: GQLContext,
+      ) => await profilesDataLoader.load(id),
     },
     name: { type: GraphQLString },
     balance: { type: GraphQLFloat },
     posts: {
       type: new GraphQLList(PostT),
-      resolve: ({ id }, _, { prisma }: PrismaContext) =>
+      resolve: ({ id }, _, { prisma }: GQLContext) =>
         prisma.post.findMany({ where: { authorId: id } }),
     },
     id: {
@@ -106,7 +109,7 @@ export const UserT = new GraphQLObjectType({
   }),
 });
 
-export const ProfileT: GraphQLObjectType<Profile, PrismaContext> = new GraphQLObjectType({
+export const ProfileT: GraphQLObjectType<Profile, GQLContext> = new GraphQLObjectType({
   name: 'Profile',
   fields: () => ({
     id: { type: new GraphQLNonNull(UUIDType) },
@@ -116,7 +119,7 @@ export const ProfileT: GraphQLObjectType<Profile, PrismaContext> = new GraphQLOb
     memberTypeId: { type: MemberEnum },
     memberType: {
       type: Member,
-      resolve: ({ memberTypeId }, _, { prisma }: PrismaContext) =>
+      resolve: ({ memberTypeId }, _, { prisma }: GQLContext) =>
         prisma.memberType.findUnique({ where: { id: memberTypeId } }),
     },
   }),

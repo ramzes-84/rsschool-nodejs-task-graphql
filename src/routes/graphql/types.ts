@@ -1,4 +1,4 @@
-import { PrismaClient, User } from '@prisma/client';
+import { MemberType, Post, PrismaClient, Profile, User } from '@prisma/client';
 import { MemberTypeId } from '../member-types/schemas.js';
 import DataLoader from 'dataloader';
 
@@ -6,11 +6,8 @@ export type IdArg = {
   id: string;
 };
 
-export type PrismaContext = {
+export type GQLContext = {
   prisma: PrismaClient;
-};
-
-export type DataloaderContext = {
   loaders: DataLoaders;
 };
 
@@ -32,4 +29,9 @@ export type SubscriptionInit = { userId: string; authorId: string };
 
 export type DataLoaders = {
   usersDataLoader: DataLoader<string, null | User>;
+  profilesDataLoader: DataLoader<string, null | Profile>;
+  postsDataLoader: DataLoader<string, null | Post[]>;
+  membersDataLoader: DataLoader<string, null | MemberType>;
+  followersDataLoader: DataLoader<string, null | User[]>;
+  subsDataLoader: DataLoader<string, null | User[]>;
 };
