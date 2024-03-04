@@ -1,10 +1,9 @@
 import { GraphQLObjectType, GraphQLString } from 'graphql';
-import { PrismaContext } from '../types.js';
+import { DataloaderContext } from '../types.js';
 import { UUIDType } from './uuid.js';
-import { Post } from '@prisma/client';
 import { UserT } from './user-fields.js';
 
-export const PostT: GraphQLObjectType<Post, PrismaContext> = new GraphQLObjectType({
+export const PostT: GraphQLObjectType = new GraphQLObjectType({
   name: 'Post',
   fields: () => ({
     id: { type: UUIDType },
@@ -12,9 +11,12 @@ export const PostT: GraphQLObjectType<Post, PrismaContext> = new GraphQLObjectTy
     content: { type: GraphQLString },
     authorId: { type: UUIDType },
     author: {
-      type: UserT,
-      resolve: ({ authorId }: { authorId: string }, _, { prisma }: PrismaContext) =>
-        prisma.user.findUnique({ where: { id: authorId } }),
+      type: UserT as GraphQLObjectType,
+      resolve: async (
+        { authorId }: { authorId: string },
+        _,
+        { loaders: { usersDataLoader } }: DataloaderContext,
+      ) => await usersDataLoader.load(authorId),
     },
   }),
 });
