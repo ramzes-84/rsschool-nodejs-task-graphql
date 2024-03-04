@@ -9,6 +9,13 @@ export type PrismaContext = {
   prisma: PrismaClient;
 };
 
+export type ProfileInit = {
+  userId: string;
+  memberTypeId: MemberTypeId;
+  isMale: boolean;
+  yearOfBirth: number;
+};
+
 export type UserInit = {
   name: string;
   balance: number;
@@ -16,9 +23,4 @@ export type UserInit = {
 
 export type PostInit = { authorId: string; content: string; title: string };
 
-export type ProfileInit = {
-  userId: string;
-  memberTypeId: MemberTypeId;
-  isMale: boolean;
-  yearOfBirth: number;
-};
+export type SubscriptionInit = { userId: string; authorId: string };

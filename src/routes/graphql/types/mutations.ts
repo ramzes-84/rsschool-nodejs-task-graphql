@@ -1,20 +1,34 @@
 import { GraphQLObjectType, GraphQLString } from 'graphql';
 
-import { UUIDType } from './uuid.js';
-import { IdArg, PostInit, PrismaContext, ProfileInit, UserInit } from '../types.js';
-import { ProfileT, UserT } from './user-fields.js';
-import { InputCreatePost, InputCreateProfile, InputCreateUser } from './inputs.js';
 import { PostT } from './post.js';
+import { UUIDType } from './uuid.js';
+import {
+  IdArg,
+  PostInit,
+  PrismaContext,
+  ProfileInit,
+  SubscriptionInit,
+  UserInit,
+} from '../types.js';
+import { ProfileT, UserT } from './user-fields.js';
+import {
+  InputCreatePost,
+  InputChangePost,
+  InputCreateUser,
+  InputChangeUser,
+  InputCreateProfile,
+  InputChangeProfile,
+} from './inputs.js';
 
 export const Mutation = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
     createUser: {
-      type: UserT,
-      args: { data: { type: InputCreateUser } },
-      resolve: (_, { data }: { data: UserInit }, { prisma }: PrismaContext) =>
+      type: UserT as GraphQLObjectType,
+      args: { dto: { type: InputCreateUser } },
+      resolve: (_, { dto }: { dto: UserInit }, { prisma }: PrismaContext) =>
         prisma.user.create({
-          data,
+          data: dto,
         }),
     },
     deleteUser: {
@@ -27,23 +41,24 @@ export const Mutation = new GraphQLObjectType({
       },
     },
     changeUser: {
-      type: UserT,
+      type: UserT as GraphQLObjectType,
       args: {
         id: { type: UUIDType },
-        data: { type: InputCreateUser },
+        dto: { type: InputChangeUser },
       },
-      resolve: (_, { id, data }: { id: string; data: UserInit }, { prisma }) =>
+      resolve: (_, { id, dto }: { id: string; dto: UserInit }, { prisma }) =>
         prisma.user.update({
           where: { id },
-          data,
+          data: dto,
         }),
     },
+
     createPost: {
       type: PostT,
-      args: { data: { type: InputCreatePost } },
-      resolve: (_, { data }: { data: PostInit }, { prisma }: PrismaContext) =>
+      args: { dto: { type: InputCreatePost } },
+      resolve: (_, { dto }: { dto: PostInit }, { prisma }) =>
         prisma.post.create({
-          data,
+          data: dto,
         }),
     },
     deletePost: {
@@ -59,20 +74,21 @@ export const Mutation = new GraphQLObjectType({
       type: PostT,
       args: {
         id: { type: UUIDType },
-        data: { type: InputCreatePost },
+        dto: { type: InputChangePost },
       },
-      resolve: (_, { id, data }: { id: string; data: PostInit }, { prisma }) =>
+      resolve: (_, { id, dto }: { id: string; dto: PostInit }, { prisma }) =>
         prisma.post.update({
           where: { id },
-          data,
+          data: dto,
         }),
     },
+
     createProfile: {
       type: ProfileT,
-      args: { data: { type: InputCreateProfile } },
-      resolve: (_, { data }: { data: ProfileInit }, { prisma }) =>
+      args: { dto: { type: InputCreateProfile } },
+      resolve: (_, { dto }: { dto: ProfileInit }, { prisma }) =>
         prisma.profile.create({
-          data,
+          data: dto,
         }),
     },
     deleteProfile: {
@@ -88,46 +104,22 @@ export const Mutation = new GraphQLObjectType({
       type: ProfileT,
       args: {
         id: { type: UUIDType },
-        data: { type: InputCreateProfile },
+        dto: { type: InputChangeProfile },
       },
-      resolve: (_, { id, data }: { id: string; data: ProfileInit }, { prisma }) =>
+      resolve: (_, { id, dto }: { id: string; dto: ProfileInit }, { prisma }) =>
         prisma.profile.update({
           where: { id },
-          data,
+          data: dto,
         }),
     },
-    unsubscribeFrom: {
-      type: GraphQLString,
-      args: {
-        userId: { type: UUIDType },
-        authorId: { type: UUIDType },
-      },
-      resolve: async (
-        _,
-        { userId, authorId }: { userId: string; authorId: string },
-        { prisma },
-      ) => {
-        await prisma.subscribersOnAuthors.delete({
-          where: {
-            subscriberId_authorId: {
-              subscriberId: userId,
-              authorId,
-            },
-          },
-        });
-      },
-    },
+
     subscribeTo: {
-      type: UserT,
+      type: UserT as GraphQLObjectType,
       args: {
         userId: { type: UUIDType },
         authorId: { type: UUIDType },
       },
-      resolve: (
-        _,
-        { userId, authorId }: { userId: string; authorId: string },
-        { prisma },
-      ) =>
+      resolve: (_, { userId, authorId }: SubscriptionInit, { prisma }) =>
         prisma.user.update({
           where: {
             id: userId,
@@ -138,6 +130,23 @@ export const Mutation = new GraphQLObjectType({
             },
           },
         }),
+    },
+    unsubscribeFrom: {
+      type: GraphQLString,
+      args: {
+        userId: { type: UUIDType },
+        authorId: { type: UUIDType },
+      },
+      resolve: async (_, { userId, authorId }: SubscriptionInit, { prisma }) => {
+        await prisma.subscribersOnAuthors.delete({
+          where: {
+            subscriberId_authorId: {
+              subscriberId: userId,
+              authorId,
+            },
+          },
+        });
+      },
     },
   }),
 });
